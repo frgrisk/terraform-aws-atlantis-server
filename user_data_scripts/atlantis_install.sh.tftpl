@@ -1,0 +1,58 @@
+#!/bin/bash
+# Install Certbot
+yum install -y python3 augeas-libs
+python3 -m venv /opt/certbot/
+/opt/certbot/bin/pip install --upgrade pip
+/opt/certbot/bin/pip install certbot
+ln -s /opt/certbot/bin/certbot /usr/bin/certbot
+# shellcheck disable=SC2154
+certbot certonly --standalone -d ${hostname} -m henry.skiba@frgrisk.com --agree-tos -n %{if test_cert}--test-cert%{endif}
+echo "0 0,12 * * * root /opt/certbot/bin/python -c 'import random; import time; time.sleep(random.random() * 3600)' && certbot renew -q" | tee -a /etc/crontab > /dev/null
+
+# Install Terraform
+yum install -y yum-utils shadow-utils
+yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+yum -y install terraform
+
+# Check for ARM instance
+if [[ $(uname -m) == aarch64 ]]; then
+   GOARCH=arm64
+else
+   GOARCH=amd64
+fi
+
+# Install Atlantis
+curl -LO https://github.com/runatlantis/atlantis/releases/download/${version}/atlantis_linux_$GOARCH.zip
+echo "${checksum}  atlantis_linux_$GOARCH.zip" | sha256sum -c --strict -
+unzip atlantis_linux_$GOARCH.zip
+rm atlantis_linux_$GOARCH.zip
+mkdir /opt/atlantis
+mv atlantis /opt/atlantis
+echo "PATH=\$PATH:/opt/atlantis" > /etc/profile.d/atlantis.sh
+tee /etc/atlantis.sh <<'CFG'
+#!/bin/sh
+/opt/atlantis/atlantis server \
+             --repo-allowlist '${repo_allowlist}' \
+             --atlantis-url https://${hostname} \
+             --gh-org ${gh_org} \
+             --port 443 \
+             --ssl-cert-file /etc/letsencrypt/live/${hostname}/fullchain.pem \
+             --ssl-key-file /etc/letsencrypt/live/${hostname}/privkey.pem \
+             --gh-app-id ${app_id} \
+             --gh-app-key-file /etc/github_app_key.pem \
+             --gh-webhook-secret ${webhook_secret} \
+             --write-git-creds \%{if repo_config_json != null}
+             --repo-config-json '${repo_config_json}' \%{endif}
+             --web-basic-auth \
+             --web-username='${web_username}' \
+             --web-password='${web_password}'
+CFG
+chmod 0700 /etc/atlantis.sh
+tee /etc/github_app_key.pem <<'EOF'
+${app_key}
+EOF
+chmod 0600 /etc/github_app_key.pem
+echo "@reboot root /etc/atlantis.sh" | tee -a /etc/crontab > /dev/null
+# Install Cronie (not included in Amazon Linux 2023 by default)
+dnf install -y cronie
+systemctl enable --now crond
