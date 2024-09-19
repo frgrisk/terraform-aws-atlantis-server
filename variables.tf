@@ -129,3 +129,9 @@ variable "test_cert" {
   type        = bool
   default     = false
 }
+
+variable "spot_instance" {
+  description = "Use a spot instance for the Atlantis server"
+  type        = bool
+  default     = false
+}
