@@ -31,6 +31,12 @@ mv atlantis /opt/atlantis
 echo "PATH=\$PATH:/opt/atlantis" > /etc/profile.d/atlantis.sh
 tee /etc/atlantis.sh <<'CFG'
 #!/bin/sh
+%{if azure_auth != null}
+export ARM_CLIENT_ID='${azure_auth.client_id}'
+export ARM_CLIENT_SECRET='${azure_auth.client_secret}'
+export ARM_SUBSCRIPTION_ID='${azure_auth.subscription_id}'
+export ARM_TENANT_ID='${azure_auth.tenant_id}'
+%{endif}
 /opt/atlantis/atlantis server \
              --repo-allowlist '${repo_allowlist}' \
              --atlantis-url https://${hostname} \
