@@ -87,13 +87,13 @@ variable "repo_allowlist" {
 variable "atlantis_version" {
   type        = string
   description = "Atlantis version to use for the Atlantis server"
-  default     = "v0.26.0"
+  default     = "v0.30.0"
 }
 
 variable "atlantis_checksum" {
   type        = string
   description = "Atlantis checksum to use for the Atlantis binary"
-  default     = "cc6e7f018de56d4d6e9b580e025da44a8e13d533b47fac73ca36acbeb8531d12"
+  default     = "ff341186e001100cb295407b423ef447377d71e8cd90087afb687daec85c977c"
 }
 
 variable "github_org" {
@@ -134,4 +134,15 @@ variable "spot_instance" {
   description = "Use a spot instance for the Atlantis server"
   type        = bool
   default     = false
+}
+
+variable "azure_auth" {
+  description = "Azure auth to use for the Atlantis server"
+  type = object({
+    client_id       = string
+    client_secret   = string
+    subscription_id = string
+    tenant_id       = string
+  })
+  default = null
 }

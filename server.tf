@@ -23,7 +23,8 @@ locals {
           gh_org           = var.github_org,
           certbot_email    = var.certbot_email,
           repo_config_json = var.repo_config_json,
-          test_cert        = var.test_cert
+          test_cert        = var.test_cert,
+          azure_auth       = var.azure_auth,
         }
       ),
       "reboot now",
