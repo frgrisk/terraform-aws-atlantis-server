@@ -150,4 +150,5 @@ variable "azure_auth" {
 variable "region" {
   description = "AWS region to deploy the Atlantis server"
   type        = string
+  default     = null
 }
