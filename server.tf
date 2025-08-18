@@ -33,7 +33,8 @@ locals {
 }
 
 resource "aws_instance" "atlantis" {
-  count = var.spot_instance ? 0 : 1
+  region = var.region
+  count  = var.spot_instance ? 0 : 1
 
   ami                  = var.ami_id
   instance_type        = var.instance_type
@@ -59,7 +60,8 @@ resource "aws_instance" "atlantis" {
 }
 
 resource "aws_spot_instance_request" "atlantis" {
-  count = var.spot_instance ? 1 : 0
+  region = var.region
+  count  = var.spot_instance ? 1 : 0
 
   ami                  = var.ami_id
   instance_type        = var.instance_type
@@ -90,7 +92,8 @@ resource "aws_spot_instance_request" "atlantis" {
 }
 
 resource "aws_ec2_tag" "spot_instance_tags" {
-  count = var.spot_instance ? length(local.instance_tags) : 0
+  region = var.region
+  count  = var.spot_instance ? length(local.instance_tags) : 0
 
   resource_id = aws_spot_instance_request.atlantis[0].spot_instance_id
   key         = keys(local.instance_tags)[count.index]
