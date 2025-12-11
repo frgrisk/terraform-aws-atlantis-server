@@ -81,6 +81,7 @@ resource "aws_spot_instance_request" "atlantis" {
   root_block_device {
     volume_type = "gp3"
     volume_size = var.volume_size
+    tags        = var.additional_tags
   }
 
   spot_type            = "persistent"
